@@ -37,6 +37,18 @@ public class EmployeeDao {
     }
 
     public Employee getEmployee(String employeeName) {
-        return null;
+        try {
+            Session session = HibernateUtil.getSessionFactory().openSession();
+            List<Employee> list = session.createQuery("from Employee where name = :emp_name", Employee.class)
+                                            .setParameter("emp_name", employeeName).stream().toList();
+            if (list.isEmpty()) {
+                return null;
+            } else {
+                return list.get(0);
+            }
+        }  catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

@@ -3,9 +3,12 @@ package skillbox.code;
 import skillbox.code.Report.Top5costTasks;
 import skillbox.code.Report.Top5employees;
 import skillbox.code.Report.Top5longTasks;
+import skillbox.code.dao.*;
+import skillbox.code.entity.*;
 
 import java.io.FileNotFoundException;
 import java.text.ParseException;
+import java.util.List;
 
 /*
 TODO list:
@@ -28,11 +31,14 @@ TODO list:
 4. Использовать commit в случае успешного импорта один раз для обеспечения целостности данных
 5. Проверьте, что все данные в БД импортированы корректно. Сравните количество записей в CSV-файлах и в БД
 6. Заблокировать вывод в консоль отладочной информации от Hibernate
+7. При импорте данных необходимо использовать стратегию Multi Insert с игнорированием тех данных, которые
+   уже есть в БД. Вставлять можно пачками, например по 10 строк, в рамках одного коммита
+   INSERT IGNORE INTO subscribe(email, is_active) VALUES ('user4@example.net', 1), ('user2@example.net', 0);
 */
 
 /*
 Требования:
-1. Целостность БД. Время старта должно быть меньше времени окончания. Реализовать в БД?
+ 1. Целостность БД. Время старта должно быть меньше времени окончания. Реализовать в БД?
    В случае обнаружения некорректной записи программа должна игнорировать её и выводить предупреждение в терминал
 2. Целостность БД. Один сотрудник может работать в один период времени только над одной задачей.
    В случае обнаружения некорректной записи программа должна игнорировать её и выводить предупреждение в терминал
@@ -43,7 +49,7 @@ TODO list:
     каждый момент времени). Также задачу можно решить средствами транзакций
     Hibernate. Для этого внутри транзакции сохранения объекта таймшита проверьте,
     не входят ли существующие задачи для этого сотрудника в тот же диапазон.
-3. В схеме описания данных (schema.sql) укажите ограничения для рейта должностей с помощью CHECK.
+3. В схеме описания данных (schema.sql) укажите ограничения для рейта должностей с помощью CHECK. Какие это ограничения?
  */
 
 public class Main {
@@ -98,6 +104,29 @@ public class Main {
 
     public static void printTimesheet(String employeeName) {
 
+        EmployeeDao employeeDao = new EmployeeDao();
+        Employee employee = employeeDao.getEmployee(employeeName);
+        if (employee == null) {
+            System.out.println("Employee " + employeeName + " isn't found");
+            return;
+        }
+
+        TimesheetDao timesheetDao = new TimesheetDao();
+        List<Timesheet> timesheets = timesheetDao.getTimesheet(employee.getId());
+        if (timesheets.isEmpty()) {
+            System.out.println("Timesheets for " + employeeName + " aren't found");
+            return;
+        }
+
+        System.out.println("+------+-------------+---------+-----------------+-----------------+");
+        System.out.println("|  id  | employee_id | task_id |    start_time   |     end_time    |");
+        System.out.println("+------+-------------+---------+-----------------+-----------------+");
+        for (var t : timesheets) {
+            // TODO Реализовать через String Builder
+            // TODO Реализовать адекватное выравнивание
+            System.out.println("|  " + t.getId() + "  |  " + t.getEmployeeId() + " | " +
+                            + t.getTaskId() + " | " + t.getStartTime() + " | " + t.getEndTime());
+        }
     }
 
     public static void removeTimesheet(Integer timesheetId) {

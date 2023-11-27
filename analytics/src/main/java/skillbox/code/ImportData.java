@@ -115,13 +115,13 @@ public class ImportData {
 
         Scanner scanner = new Scanner(new File(DATA_PATH + File.separatorChar + filename));
         int linesNum = 0;
-        while (scanner.hasNextLine() && (linesNum++ < 10)) {
+        while (scanner.hasNextLine() /*&& (linesNum++ < 10)*/) {
             String line = scanner.nextLine();
             Scanner s = new Scanner(line).useDelimiter(",");
             String currTask = s.next();
             String currEmployee = s.next();
-            LocalDateTime startTask = LocalDateTime.parse(s.next(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            LocalDateTime endTask = LocalDateTime.parse(s.next(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            LocalDateTime startTask = LocalDateTime.parse(s.next(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH));
+            LocalDateTime endTask = LocalDateTime.parse(s.next(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH));
 
             Timesheet timesheet = new Timesheet();
             for (var employee : employees) {

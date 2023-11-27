@@ -47,9 +47,4 @@ public class HibernateUtil {
         }
         return sessionFactory;
     }
-
-    public static SessionFactory test() {
-        System.out.println("Test");
-        return sessionFactory;
-    }
 }
