@@ -17,6 +17,7 @@ public class HibernateUtil {
     public static SessionFactory getSessionFactory() {
         if (sessionFactory == null) {
             try {
+                // TODO Настройка hibernate https://javarush.com/quests/lectures/questhibernate.level09.lecture02
                 Configuration configuration = new Configuration();
 
                 Properties settings = new Properties();
@@ -26,7 +27,7 @@ public class HibernateUtil {
                 settings.put(Environment.PASS, "pass");
                 settings.put(Environment.DIALECT, "org.hibernate.dialect.MySQL5Dialect");
 
-                settings.put(Environment.SHOW_SQL, "true");
+                settings.put(Environment.SHOW_SQL, "false");
 
                 settings.put(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread");
 

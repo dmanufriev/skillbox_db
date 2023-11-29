@@ -14,7 +14,7 @@ public class Timesheet implements Serializable {
     @Column(name = "employee_id")
     private int employeeId;
     @Column(name = "task_id")
-    private int taskId;
+    private Integer taskId;
     @Column(name = "start_time")
     private LocalDateTime startTime;
     @Column(name = "end_time")
@@ -32,11 +32,11 @@ public class Timesheet implements Serializable {
         this.employeeId = employeeId;
     }
 
-    public int getTaskId() {
+    public Integer getTaskId() {
         return taskId;
     }
 
-    public void setTaskId(int taskId) {
+    public void setTaskId(Integer taskId) {
         this.taskId = taskId;
     }
 

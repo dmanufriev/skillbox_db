@@ -22,7 +22,8 @@ CREATE TABLE `analytics`.`employees` (
     `name` VARCHAR(255) NOT NULL,
     `position_id` INT UNSIGNED NOT NULL,
     PRIMARY KEY (`employee_id`),
-    UNIQUE KEY `name` (`name`)
+    UNIQUE KEY `name` (`name`),
+    CONSTRAINT `fk_pos` FOREIGN KEY (`position_id`) REFERENCES `positions` (`position_id`) ON DELETE RESTRICT
 );
 
 CREATE TABLE `analytics`.`timesheet` (
@@ -32,5 +33,7 @@ CREATE TABLE `analytics`.`timesheet` (
     `start_time` TIMESTAMP,
     `end_time` TIMESTAMP,
     PRIMARY KEY (`timesheet_id`),
+    CONSTRAINT `fk_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`employee_id`) ON DELETE RESTRICT,
+    CONSTRAINT `fk_task` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`task_id`) ON DELETE RESTRICT,
     CONSTRAINT `time_check` CHECK ((`start_time` < `end_time`))
 );

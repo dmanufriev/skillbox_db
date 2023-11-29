@@ -6,6 +6,7 @@ import skillbox.code.entity.Employee;
 import skillbox.code.entity.Task;
 import skillbox.code.utils.HibernateUtil;
 
+import java.io.Serializable;
 import java.util.List;
 
 public class TaskDao {

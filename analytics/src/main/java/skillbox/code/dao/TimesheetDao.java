@@ -4,6 +4,7 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import skillbox.code.entity.Employee;
 import skillbox.code.entity.Timesheet;
+import skillbox.code.entity.Task;
 import skillbox.code.utils.HibernateUtil;
 
 import javax.persistence.Query;
@@ -26,8 +27,7 @@ public class TimesheetDao {
         try {
             Session session = HibernateUtil.getSessionFactory().openSession();
 
-            transaction = session.beginTransaction();
-
+            // Проверка пересечения данной задачи с другими у текущего работника
             List<Timesheet> existingTimesheets = getTimesheet(timesheet.getEmployeeId());
             for (var t : existingTimesheets) {
                 if ((timesheet.getStartTime().isAfter(t.getStartTime()) &&
@@ -36,9 +36,12 @@ public class TimesheetDao {
                         timesheet.getEndTime().isBefore(t.getEndTime()))) {
                     System.out.println("Save timesheet for task " + timesheet.getTaskId() + " FAILED");
                     System.out.println("Intersection with existing task " + t.getTaskId());
+
                     return;
                 }
             }
+
+            transaction = session.beginTransaction();
 
             // TODO В рамках транзакции необходимо именно здесь сохранять task, и в случае успеха
             // добавлять timesheet в БД, предварительно получив id
@@ -54,7 +57,52 @@ public class TimesheetDao {
         }
     }
 
+    // TODO Можно ли удалить задачу средствами самой БД? Пока у меня не получилось
     public Timesheet removeTimesheet(Integer id) {
+
+        Transaction transaction = null;
+
+        try {
+            Session session = HibernateUtil.getSessionFactory().openSession();
+
+            transaction = session.beginTransaction();
+
+            // Проверяем, что timesheet существует
+            List<Timesheet> list = session.createQuery("from Timesheet where timesheet_id = :id")
+                    .setParameter("id", id).list();
+            if (list.isEmpty()) {
+                System.out.println("Timesheet " + id + " isn't found");
+                transaction.commit();
+                return null;
+            }
+
+            Timesheet timesheet = list.get(0);
+            session.delete(timesheet);
+
+            // TODO Удаляем задачу из БД, если больше нет связанных timesheets
+            if (list.size() == 1) {
+                List<Task> listTasks = session.createQuery("from Task where task_id = :id")
+                        .setParameter("id", timesheet.getTaskId()).list();
+                if (listTasks.isEmpty()) {
+                    System.out.println("Task " + timesheet.getTaskId() + " isn't found");
+                    transaction.commit();
+                    return null;
+                }
+
+                Task task = listTasks.get(0);
+                session.delete(task);
+            }
+
+            // TODO Здесь необходимо добавить таймшит в лог
+
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        }
+
         return null;
     }
 
