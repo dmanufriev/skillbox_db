@@ -7,12 +7,13 @@ import java.io.Serializable;
 @Table(name="positions")
 public class Position implements Serializable {
     @Id
-    @Column(name="position_id")
-    private int id;
-    @Column(name="title")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name="position_id", nullable = false)
+    private Integer id;
+    @Column(name="title", unique = true, nullable = false, length = 100)
     private String title;
-    @Column(name="hour_salary")
-    private int hourSalary;
+    @Column(name="hour_salary", nullable = false)
+    private Integer hourSalary;
 
     public Position() {
         this.id = 0;
@@ -26,9 +27,10 @@ public class Position implements Serializable {
         this.hourSalary = hourSalary;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
+    public void setId(Integer id) { this.id = id; }
 
     public String getTitle() {
         return title;
@@ -38,11 +40,11 @@ public class Position implements Serializable {
         this.title = title;
     }
 
-    public int getHourSalary() {
+    public Integer getHourSalary() {
         return hourSalary;
     }
 
-    public void setHourSalary(int hourSalary) {
+    public void setHourSalary(Integer hourSalary) {
         this.hourSalary = hourSalary;
     }
 }

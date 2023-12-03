@@ -24,12 +24,14 @@ public class PositionDao {
         Transaction transaction = null;
         try {
             Session session = HibernateUtil.getSessionFactory().openSession();
-
             transaction = session.beginTransaction();
             for (var position : positions) {
-                session.save(position);
+                if (position.getId() == null) {
+                    session.save(position);
+                } else {
+                    session.update(position);
+                }
             }
-
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) {

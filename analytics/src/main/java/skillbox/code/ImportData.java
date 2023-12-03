@@ -86,7 +86,7 @@ public class ImportData {
                 emp.setName(name);
                 for (var pos : positions) {
                     if (pos.getTitle().equals(position)) {
-                        emp.setPositionId(pos.getId());
+                        emp.setPosition(pos);
                         employeeDao.saveEmployee(emp);
                         break;
                     }
@@ -118,24 +118,25 @@ public class ImportData {
         while (scanner.hasNextLine() /*&& (linesNum++ < 10)*/) {
             String line = scanner.nextLine();
             Scanner s = new Scanner(line).useDelimiter(",");
-            String currTask = s.next();
-            String currEmployee = s.next();
+            String currTaskTitle = s.next();
+            String currEmployeeName = s.next();
             LocalDateTime startTask = LocalDateTime.parse(s.next(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH));
             LocalDateTime endTask = LocalDateTime.parse(s.next(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH));
 
             Timesheet timesheet = new Timesheet();
             for (var employee : employees) {
-                if(employee.getName().equals(currEmployee)) {
-                    timesheet.setEmployeeId(employee.getId());
+                if(employee.getName().equals(currEmployeeName)) {
+                    timesheet.setEmployee(employee);
                     break;
                 }
             }
             for (var task : tasks) {
-                if(task.getTitle().equals(currTask)) {
-                    timesheet.setTaskId(task.getId());
+                if(task.getTitle().equals(currTaskTitle)) {
+                    timesheet.setTask(task);
                     break;
                 }
             }
+
             timesheet.setStartTime(startTask);
             timesheet.setEndTime(endTask);
             timesheetDao.saveTimesheet(timesheet);

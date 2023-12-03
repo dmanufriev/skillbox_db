@@ -1,85 +1,55 @@
 package skillbox.code.Report;
 
-import org.hibernate.Query;
 import org.hibernate.Session;
-import org.hibernate.Transaction;
-import org.hibernate.query.NativeQuery;
-import org.hibernate.type.StandardBasicTypes;
-import skillbox.code.entity.Timesheet;
 import skillbox.code.utils.HibernateUtil;
-
 import java.util.List;
-import java.util.Set;
-
-// TODO Параметры LIMIT, OFFSET и сортировка задаются при помощи отдельных параметров
-// https://javarush.com/quests/lectures/questhibernate.level10.lecture04
-// TODO Заголовок колонок необходимо получать из запроса при помощи query.getParameterMetadata()
-// TODO Автоматизировать расчет ширины столбцов при выводе на печать при помощи анализа самого длинного слова в столбце
+import org.apache.commons.lang3.StringUtils;
 
 public class Top5longTasks {
+    private static String HOURS_COLUMN_NAME = "spent_hours";
+    private static final int HOURS_COLUMN_WIDTH = 11;
+    private static final String TITLE_COLUMN_NAME = "title";
+    private static final int TITLE_COLUMN_WIDTH = 20;
+
     public static void report() {
+        // SELECT SUM(HOUR(TIMEDIFF(end_time, start_time))) as spent_hours, t.title FROM timesheet tsh
+        // JOIN tasks t ON tsh.task_id = t.task_id
+        // JOIN employees e ON tsh.employee_id = e.employee_id
+        // JOIN positions p ON e.position_id = p.position_id
+        // GROUP BY t.title
+        // ORDER BY spent_hours DESC, title
+        // LIMIT 5;
         try {
             Session session = HibernateUtil.getSessionFactory().openSession();
 
-            Query<Object[]> query = session.createNativeQuery(
-                    "SELECT SUM(HOUR(TIMEDIFF(end_time, start_time)) * p.hour_salary) as total_cost, " +
-                            "t.title FROM timesheet tsh " +
-                            "LEFT JOIN tasks t ON tsh.task_id = t.task_id " +
-                            "LEFT JOIN employees e ON tsh.employee_id = e.employee_id " +
-                            "LEFT JOIN positions p ON e.position_id = p.position_id " +
-                            "GROUP BY t.title ORDER BY total_cost DESC LIMIT 5");
-            ((NativeQuery<Object[]>) query).addScalar("total_cost", StandardBasicTypes.LONG);
-            ((NativeQuery<Object[]>) query).addScalar("title", StandardBasicTypes.STRING);
-            List<Object[]> tasks = query.list();
+            String hql = "select sum(hour(timediff(endTime, startTime))) as spent_hours," +
+                        " task.title from Timesheet group by task.title ORDER BY spent_hours desc, title asc";
 
-            if (!tasks.isEmpty()) {
-                System.out.println("+-------------+-------------+");
-                System.out.println("| spent_hours |  title      |");
-                System.out.println("+-------------+-------------+");
-                tasks.forEach((objects -> {
-                    System.out.println("| " + (Long) objects[0] + " | " + (String) objects[1] + " | ");
-                }));
-            } else {
+            List<Object[]> report = session.createQuery(hql, Object[].class).setMaxResults(5).list();
+
+            if (report.isEmpty()) {
                 System.out.println("No data");
+                return;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    };
 
-    public static void reportHql() {
-        try {
-            Session session = HibernateUtil.getSessionFactory().openSession();
+            StringBuilder builder = new StringBuilder("+");
+            builder.append(StringUtils.repeat("-", HOURS_COLUMN_WIDTH + 2));
+            builder.append("+");
+            builder.append(StringUtils.repeat("-", TITLE_COLUMN_WIDTH + 2));
+            builder.append("+");
+            String headerSeparator = builder.toString();
 
-            String hql = "select sum(hour(timediff(end_time, start_time)) * p.hour";
+            System.out.println(headerSeparator);
+            System.out.printf("| %" + HOURS_COLUMN_WIDTH + "s | %-" + TITLE_COLUMN_WIDTH + "s |\n",
+                    HOURS_COLUMN_NAME, TITLE_COLUMN_NAME);
+            System.out.println(headerSeparator);
+            report.forEach((objects -> {
+                System.out.printf("| %" + HOURS_COLUMN_WIDTH + "s | %-" + TITLE_COLUMN_WIDTH + "s |\n",
+                        (Long) objects[0], (String) objects[1]);
+            }));
 
-            Query<Object[]> query = session.createNativeQuery(
-                    "SELECT SUM(HOUR(TIMEDIFF(end_time, start_time)) * p.hour_salary) as total_cost, " +
-                            "t.title FROM timesheet tsh " +
-                            "LEFT JOIN tasks t ON tsh.task_id = t.task_id " +
-                            "LEFT JOIN employees e ON tsh.employee_id = e.employee_id " +
-                            "LEFT JOIN positions p ON e.position_id = p.position_id " +
-                            "GROUP BY t.title ORDER BY total_cost DESC LIMIT 5");
-            ((NativeQuery<Object[]>) query).addScalar("total_cost", StandardBasicTypes.LONG);
-            ((NativeQuery<Object[]>) query).addScalar("title", StandardBasicTypes.STRING);
-            List<Object[]> tasks = query.list();
-
-            if (!tasks.isEmpty()) {
-                System.out.println("+-------------+-------------+");
-                System.out.println("| spent_hours |  title      |");
-                System.out.println("+-------------+-------------+");
-                tasks.forEach((objects -> {
-                    System.out.println("| " + (Long) objects[0] + " | " + (String) objects[1] + " | ");
-                }));
-            } else {
-                System.out.println("No data");
-            }
         } catch (Exception e) {
             e.printStackTrace();
         }
     };
 }
-// SELECT SUM(HOUR(TIMEDIFF(end_time, start_time)) * p.hour_salary) as total_cost, t.title FROM timesheet tsh LEFT JOIN tasks t ON tsh.task_id = t.task_id LEFT JOIN employees e ON tsh.employee_id = e.employee_id LEFT JOIN positions p ON e.position_id = p.position_id GROUP BY t.title ORDER BY total_cost DESC LIMIT 5;
-
-// Проверка
-// SELECT title, tsh.task_id, tsh.employee_id, p.title, HOUR(TIMEDIFF(tsh.end_time, tsh.start_time)) as spent_hours, p.hour_salary FROM timesheet tsh LEFT JOIN tasks t ON tsh.task_id = t.task_id LEFT JOIN employees e ON tsh.employee_id = e.employee_id LEFT JOIN positions p ON e.position_id = p.position_id WHERE t.title = 'BILLING-970';

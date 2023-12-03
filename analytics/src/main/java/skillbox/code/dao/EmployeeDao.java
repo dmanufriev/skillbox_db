@@ -10,14 +10,16 @@ import java.util.List;
 
 public class EmployeeDao {
     public void saveEmployee(Employee employee) {
-
-        // TODO метод persist() позволяет сохранять id в объекте https://javarush.com/quests/lectures/questhibernate.level09.lecture03
         Transaction transaction = null;
         try {
             Session session = HibernateUtil.getSessionFactory().openSession();
 
             transaction = session.beginTransaction();
-            session.save(employee);
+            if (employee.getId() == null) {
+                session.save(employee);
+            } else {
+                session.update(employee);
+            }
 
             transaction.commit();
         } catch (Exception e) {
@@ -40,15 +42,10 @@ public class EmployeeDao {
 
     public Employee getEmployee(String employeeName) {
         try {
-            // TODO протестировать uniqueResult() вместо List()
             Session session = HibernateUtil.getSessionFactory().openSession();
-            List<Employee> list = session.createQuery("from Employee where name = :emp_name", Employee.class)
-                                            .setParameter("emp_name", employeeName).stream().toList();
-            if (list.isEmpty()) {
-                return null;
-            } else {
-                return list.get(0);
-            }
+            Employee employee = session.createQuery("from Employee where name = :emp_name", Employee.class)
+                                            .setParameter("emp_name", employeeName).uniqueResult();
+            return employee;
         }  catch (Exception e) {
             e.printStackTrace();
             return null;

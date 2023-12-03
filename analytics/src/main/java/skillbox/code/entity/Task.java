@@ -8,16 +8,17 @@ import java.util.Objects;
 @Table(name="tasks")
 public class Task implements Serializable {
     @Id
-    @Column(name = "task_id")
-    private int id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "task_id", nullable = false)
+    private Integer id;
 
-    @Column(name = "title")
+    @Column(name = "title", unique = true, nullable = false, length = 100)
     private String title;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

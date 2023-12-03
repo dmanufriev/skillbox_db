@@ -9,35 +9,39 @@ import java.util.Date;
 @Table(name="timesheet")
 public class Timesheet implements Serializable {
     @Id
-    @Column(name = "timesheet_id")
-    private int id;
-    @Column(name = "employee_id")
-    private int employeeId;
-    @Column(name = "task_id")
-    private Integer taskId;
-    @Column(name = "start_time")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "timesheet_id", nullable = false)
+    private Integer id;
+    @ManyToOne
+    @JoinColumn(name = "employee_id", nullable = false)
+    private Employee employee;
+    @ManyToOne
+    @JoinColumn(name = "task_id", nullable = false)
+    private Task task;
+    @Column(name = "start_time", nullable = true)
     private LocalDateTime startTime;
-    @Column(name = "end_time")
+    @Column(name = "end_time", nullable = true)
     private LocalDateTime endTime;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
+    public void setId(Integer id) { this.id = id; }
 
-    public int getEmployeeId() {
-        return employeeId;
+    public Employee getEmployee() {
+        return employee;
     }
 
-    public void setEmployeeId(int employeeId) {
-        this.employeeId = employeeId;
+    public void setEmployee(Employee employee) {
+        this.employee = employee;
     }
 
-    public Integer getTaskId() {
-        return taskId;
+    public Task getTask() {
+        return task;
     }
 
-    public void setTaskId(Integer taskId) {
-        this.taskId = taskId;
+    public void setTask(Task task) {
+        this.task = task;
     }
 
     public LocalDateTime getStartTime() {

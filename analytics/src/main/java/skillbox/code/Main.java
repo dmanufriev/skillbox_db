@@ -52,6 +52,18 @@ TODO list:
 3. В схеме описания данных (schema.sql) укажите ограничения для рейта должностей с помощью CHECK. Какие это ограничения?
  */
 
+// Проверка
+// SELECT title, tsh.task_id, tsh.employee_id, p.title, HOUR(TIMEDIFF(tsh.end_time, tsh.start_time)) as spent_hours, p.hour_salary FROM timesheet tsh LEFT JOIN tasks t ON tsh.task_id = t.task_id LEFT JOIN employees e ON tsh.employee_id = e.employee_id LEFT JOIN positions p ON e.position_id = p.position_id WHERE t.title = 'BILLING-970';
+// Сводная таблица в человеческом виде
+//   select tsh.timesheet_id, t.title, e.name, p.title, p.hour_salary, tsh.start_time, tsh.end_time FROM timesheet tsh JOIN tasks t ON tsh.task_id = t.task_id JOIN employees e ON tsh.employee_id = e.employee_id JOIN positions p ON e.position_id = p.position_id ORDER BY tsh.timesheet_id LIMIT 10;
+
+
+/* Полезные ссылки:
+Ссылка на настройку аннотаций: https://javarush.com/quests/lectures/questhibernate.level09.lecture01
+Как работать с ID: https://habr.com/ru/companies/haulmont/articles/653843/ В статье выше есть видео обзор
+Параметры LIMIT, OFFSET и сортировка задаются при помощи отдельных параметров https://javarush.com/quests/lectures/questhibernate.level10.lecture04
+ */
+
 public class Main {
     public static void main(String[] args) throws FileNotFoundException, ParseException {
         if (args.length < 2) {
@@ -124,12 +136,16 @@ public class Main {
         for (var t : timesheets) {
             // TODO Реализовать через String Builder
             // TODO Реализовать адекватное выравнивание
-            System.out.println("|  " + t.getId() + "  |  " + t.getEmployeeId() + " | " +
-                            + t.getTaskId() + " | " + t.getStartTime() + " | " + t.getEndTime());
+            System.out.println("|  " + t.getId() + "  |  " + t.getEmployee().getId() + " | " +
+                            + t.getTask().getId() + " | " + t.getStartTime() + " | " + t.getEndTime());
         }
     }
 
     public static void removeTimesheet(Integer timesheetId) {
-
+        TimesheetDao timesheetDao = new TimesheetDao();
+        Timesheet timesheet = timesheetDao.removeTimesheet(timesheetId);
+        if (timesheet != null) {
+            System.out.println("Timesheet id " + timesheet.getId() + " removed");
+        }
     }
 }

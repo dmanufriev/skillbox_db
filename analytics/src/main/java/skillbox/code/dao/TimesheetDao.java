@@ -17,36 +17,40 @@ public class TimesheetDao {
     // 3. Если все ок - сохраняем в БД
     public void saveTimesheet(Timesheet timesheet) {
 
+        // Проверка корректности временных интервалов
         if (timesheet.getStartTime().isAfter(timesheet.getEndTime())) {
-            System.out.println("Save timesheet for task " + timesheet.getTaskId() + " FAILED");
+            System.out.println("Save timesheet for task " + timesheet.getTask().getTitle() + " FAILED");
             System.out.println("Incorrect time zones: " + timesheet.getStartTime() + " / " + timesheet.getEndTime());
             return;
         }
 
         Transaction transaction = null;
         try {
-            Session session = HibernateUtil.getSessionFactory().openSession();
-
             // Проверка пересечения данной задачи с другими у текущего работника
-            List<Timesheet> existingTimesheets = getTimesheet(timesheet.getEmployeeId());
+            List<Timesheet> existingTimesheets = getTimesheet(timesheet.getEmployee().getId());
             for (var t : existingTimesheets) {
                 if ((timesheet.getStartTime().isAfter(t.getStartTime()) &&
                         timesheet.getStartTime().isBefore(t.getEndTime())) ||
                     (timesheet.getEndTime().isAfter(t.getStartTime()) &&
                         timesheet.getEndTime().isBefore(t.getEndTime()))) {
-                    System.out.println("Save timesheet for task " + timesheet.getTaskId() + " FAILED");
-                    System.out.println("Intersection with existing task " + t.getTaskId());
+                    System.out.println("Save timesheet for task " + timesheet.getTask().getTitle() + " FAILED");
+                    System.out.println("Intersection with existing task " + t.getTask().getTitle());
 
                     return;
                 }
             }
 
+            Session session = HibernateUtil.getSessionFactory().openSession();
             transaction = session.beginTransaction();
 
             // TODO В рамках транзакции необходимо именно здесь сохранять task, и в случае успеха
             // добавлять timesheet в БД, предварительно получив id
 
-            session.save(timesheet);
+            if (timesheet.getId() == null) {
+                session.save(timesheet);
+            } else {
+                session.update(timesheet);
+            }
 
             transaction.commit();
         } catch (Exception e) {
@@ -61,6 +65,7 @@ public class TimesheetDao {
     public Timesheet removeTimesheet(Integer id) {
 
         Transaction transaction = null;
+        Timesheet timesheet = null;
 
         try {
             Session session = HibernateUtil.getSessionFactory().openSession();
@@ -68,29 +73,20 @@ public class TimesheetDao {
             transaction = session.beginTransaction();
 
             // Проверяем, что timesheet существует
-            List<Timesheet> list = session.createQuery("from Timesheet where timesheet_id = :id")
-                    .setParameter("id", id).list();
-            if (list.isEmpty()) {
+            timesheet = (Timesheet) session.createQuery("from Timesheet where timesheet_id = :id")
+                    .setParameter("id", id).uniqueResult();
+            if (timesheet == null) {
                 System.out.println("Timesheet " + id + " isn't found");
                 transaction.commit();
                 return null;
             }
-
-            Timesheet timesheet = list.get(0);
             session.delete(timesheet);
 
-            // TODO Удаляем задачу из БД, если больше нет связанных timesheets
-            if (list.size() == 1) {
-                List<Task> listTasks = session.createQuery("from Task where task_id = :id")
-                        .setParameter("id", timesheet.getTaskId()).list();
-                if (listTasks.isEmpty()) {
-                    System.out.println("Task " + timesheet.getTaskId() + " isn't found");
-                    transaction.commit();
-                    return null;
-                }
-
-                Task task = listTasks.get(0);
-                session.delete(task);
+            // TODO Здесь можно написать сразу where Task = task
+            List<Timesheet> timesheetsWithTask= session.createQuery("from Timesheet where task_id = :id")
+                    .setParameter("id", timesheet.getTask().getId()).list();
+            if (timesheetsWithTask.isEmpty()) {
+                session.delete(timesheet.getTask());
             }
 
             // TODO Здесь необходимо добавить таймшит в лог
@@ -103,10 +99,10 @@ public class TimesheetDao {
             e.printStackTrace();
         }
 
-        return null;
+        return timesheet;
     }
 
-    public List<Timesheet> getTimesheet(int employeeId) {
+    public List<Timesheet> getTimesheet(Integer employeeId) {
         try {
             Session session = HibernateUtil.getSessionFactory().openSession();
             return session.createQuery("from Timesheet where employee_id = :emp_id")
