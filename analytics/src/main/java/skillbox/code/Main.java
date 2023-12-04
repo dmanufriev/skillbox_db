@@ -5,6 +5,7 @@ import skillbox.code.Report.Top5employees;
 import skillbox.code.Report.Top5longTasks;
 import skillbox.code.dao.*;
 import skillbox.code.entity.*;
+import skillbox.code.utils.ReportUtil;
 
 import java.io.FileNotFoundException;
 import java.text.ParseException;
@@ -86,7 +87,8 @@ public class Main {
                 }
                 break;
             case "list":
-                // TODO Add list functionality
+                System.out.println("Employees list:");
+                printEmployees();
                 break;
             case "get":
                 System.out.println("Timesheet for employee " + args[1]);
@@ -114,7 +116,29 @@ public class Main {
         System.exit(0);
     }
 
+    public static void printEmployees() {
+        final int[] columnsWidth = { 15, 30 };
+
+        EmployeeDao employeeDao = new EmployeeDao();
+        List<Employee> employees = employeeDao.getEmployees();
+        if (employees.isEmpty()) {
+            System.out.println("No employees found");
+            return;
+        }
+
+        String headerSeparator = ReportUtil.getSeparatorTemplate(columnsWidth, columnsWidth.length);
+        String tableTemplate = ReportUtil.getTableTemplate(columnsWidth, columnsWidth.length);
+
+        System.out.print(headerSeparator);
+        System.out.printf(tableTemplate, "name", "position");
+        System.out.print(headerSeparator);
+        for (var e : employees) {
+            System.out.printf(tableTemplate, e.getName(), e.getPosition().getTitle());
+        }
+    }
+
     public static void printTimesheet(String employeeName) {
+        final int[] columnsWidth = { 5, 12, 12, 25, 25 };
 
         EmployeeDao employeeDao = new EmployeeDao();
         Employee employee = employeeDao.getEmployee(employeeName);
@@ -130,14 +154,15 @@ public class Main {
             return;
         }
 
-        System.out.println("+------+-------------+---------+-----------------+-----------------+");
-        System.out.println("|  id  | employee_id | task_id |    start_time   |     end_time    |");
-        System.out.println("+------+-------------+---------+-----------------+-----------------+");
+        String headerSeparator = ReportUtil.getSeparatorTemplate(columnsWidth, columnsWidth.length);
+        String tableTemplate = ReportUtil.getTableTemplate(columnsWidth, columnsWidth.length);
+
+        System.out.print(headerSeparator);
+        System.out.printf(tableTemplate, "id", "employee_id", "task_id", "start_time", "end_time");
+        System.out.print(headerSeparator);
         for (var t : timesheets) {
-            // TODO Реализовать через String Builder
-            // TODO Реализовать адекватное выравнивание
-            System.out.println("|  " + t.getId() + "  |  " + t.getEmployee().getId() + " | " +
-                            + t.getTask().getId() + " | " + t.getStartTime() + " | " + t.getEndTime());
+            System.out.printf(tableTemplate, t.getId(), t.getEmployee().getId(), t.getTask().getId(),
+                                t.getStartTime(), t.getEndTime());
         }
     }
 
