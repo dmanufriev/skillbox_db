@@ -15,18 +15,6 @@ public class Position implements Serializable {
     @Column(name="hour_salary", nullable = false)
     private Integer hourSalary;
 
-    public Position() {
-        this.id = 0;
-        this.title = "";
-        this.hourSalary = 0;
-    }
-
-    public Position(String title, int hourSalary) {
-        this.id = 0;
-        this.title = title;
-        this.hourSalary = hourSalary;
-    }
-
     public Integer getId() {
         return id;
     }

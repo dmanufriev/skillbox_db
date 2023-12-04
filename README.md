@@ -1,15 +1,39 @@
 # skillbox_db
 
-    Возможные варианты запуска из консоли:
-    make run ARG0=import ARG1=positions.csv
-    ./build/install/analytics/bin/analytics import positions.csv
+Программа аналитики данных о времени, потраченном сотрудниками на те или иные задачи.
+Информация о задачах, сотрудниках и потраченном на задачи времени должна импортироваться 
+в этот инструмент из файлов формата CSV, которые предварительно экспортированы из системы 
+управления задачами.
 
-    - program import positions.csv
-    - program import employees.csv
-    - program import timesheet.csv
-    - program list employee
-    - program get [employeeName]
-    - program remove [employeeName]
-    - program report top5longTasks
-    - program report top5costTasks
-    - program report top5employees
+Реализована следующая функциональность:
+1) program import positions.csv — добавляет в БД указанные в файле positions.csv
+должности и ставки оплаты труда;
+2) program import employees.csv — добавляет в БД указанные в файле employees.csv
+имена и позиции сотрудников;
+3) program import timesheet.csv — добавляет в БД указанные в файле timesheet.csv
+периоды работы сотрудников над задачами;
+4) program list employee — выводит и перечисляет сотрудников по именам;
+5) program get [employeeName] — выводит таймшиты сотрудника по его имени;
+6) program remove [employeeName] — удаляет данные по сотруднику из таймшита по
+его имени;
+7) program report top5longTasks — выводит пять задач, на которые потрачено больше
+всего времени;
+8) program report top5costTasks — выводит пять задач, на которые потрачено больше
+всего денег;
+9) program report top5employees — выводит пять сотрудников, отработавших
+наибольшее количество времени за всё время
+
+Сборка проекта:
+gradle clean
+gradle build
+
+JAR файл analytics-1.0-SNAPSHOT-all.jar находится в директории:
+analytics/build/lib
+
+CSV файлы необходимо расположить в директории data относительно
+исполняемого jar файла.
+
+Запуск реализован через командную строку. Пример:
+java -jar analytics-1.0-SNAPSHOT-all.jar import positions.csv
+
+ER диаграмма проекта находится в директории analytics/data

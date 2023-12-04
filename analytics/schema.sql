@@ -47,7 +47,7 @@ CREATE TABLE `analytics`.`timesheet_history` (
     PRIMARY KEY (`timesheet_id`)
 );
 
-CREATE TRIGGER timesheet_log BEFORE DELETE ON timesheet FOR EACH ROW
+CREATE TRIGGER `analytics`.`timesheet_log` BEFORE DELETE ON timesheet FOR EACH ROW
     INSERT INTO timesheet_history SET
     timesheet_id = OLD.timesheet_id,
     employee_id = OLD.employee_id,

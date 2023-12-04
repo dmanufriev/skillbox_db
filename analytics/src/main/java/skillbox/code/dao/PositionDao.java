@@ -4,21 +4,13 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import skillbox.code.entity.Position;
 import skillbox.code.utils.HibernateUtil;
-
-import java.util.ArrayList;
 import java.util.List;
 
 public class PositionDao {
-    public void savePosition(Position position) {
-        List<Position> positions = new ArrayList<>();
-        positions.add(position);
-        savePositions(positions);
-    }
-
-    public void savePositions(List<Position> positions) {
+    public int savePositions(List<Position> positions) {
 
         if (positions.isEmpty()) {
-            return;
+            return 0;
         }
 
         Transaction transaction = null;
@@ -26,18 +18,16 @@ public class PositionDao {
             Session session = HibernateUtil.getSessionFactory().openSession();
             transaction = session.beginTransaction();
             for (var position : positions) {
-                if (position.getId() == null) {
-                    session.save(position);
-                } else {
-                    session.update(position);
-                }
+                session.save(position);
             }
             transaction.commit();
+            return 0;
         } catch (Exception e) {
             if (transaction != null) {
                 transaction.rollback();
             }
             e.printStackTrace();
+            return -1;
         }
     }
 

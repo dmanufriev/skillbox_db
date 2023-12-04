@@ -10,63 +10,14 @@ import skillbox.code.utils.ReportUtil;
 import java.io.FileNotFoundException;
 import java.text.ParseException;
 import java.util.List;
-
-/*
-TODO list:
-1. Add checkstyle
-2. Реализовать вызов из консоли java -jar program.jar import positions.csv
-    - program import positions.csv
-    - program import employees.csv
-    - program import timesheet.csv
-    - program list employee
-    - program get [employeeName]
-    - program remove [employeeName]
-    - program report top5longTasks
-    - program report top5costTasks
-    - program report top5employees
-    Возможные варианты запуска из консоли:
-    make run ARG0=import ARG1=positions.csv
-    ./build/install/analytics/bin/analytics import positions.csv
-3. Можно ли создавать базу данных вручную через консоль. Или обязательно нужно проверять программно
-    при запуске? И, при необходимости, создавать.
-4. Использовать commit в случае успешного импорта один раз для обеспечения целостности данных
-5. Проверьте, что все данные в БД импортированы корректно. Сравните количество записей в CSV-файлах и в БД
-6. Заблокировать вывод в консоль отладочной информации от Hibernate
-7. При импорте данных необходимо использовать стратегию Multi Insert с игнорированием тех данных, которые
-   уже есть в БД. Вставлять можно пачками, например по 10 строк, в рамках одного коммита
-   INSERT IGNORE INTO subscribe(email, is_active) VALUES ('user4@example.net', 1), ('user2@example.net', 0);
-*/
-
-/*
-Требования:
- 1. Целостность БД. Время старта должно быть меньше времени окончания. Реализовать в БД?
-   В случае обнаружения некорректной записи программа должна игнорировать её и выводить предупреждение в терминал
-2. Целостность БД. Один сотрудник может работать в один период времени только над одной задачей.
-   В случае обнаружения некорректной записи программа должна игнорировать её и выводить предупреждение в терминал
-   Т.е. проверяем пересечение дат текущего таймшита со всеми таймшитами конкретного сотрудника.
-   Для обеспечения целостности временных рядов таймшитов напишите триггер в
-    schema.sql BEFORE INSERT/UPDATE, который будет проверять, не пересекаются
-    ли таймшиты сотрудника (сотрудник может работать только над одной задачей в
-    каждый момент времени). Также задачу можно решить средствами транзакций
-    Hibernate. Для этого внутри транзакции сохранения объекта таймшита проверьте,
-    не входят ли существующие задачи для этого сотрудника в тот же диапазон.
-3. В схеме описания данных (schema.sql) укажите ограничения для рейта должностей с помощью CHECK. Какие это ограничения?
- */
-
-// Проверка
-// SELECT title, tsh.task_id, tsh.employee_id, p.title, HOUR(TIMEDIFF(tsh.end_time, tsh.start_time)) as spent_hours, p.hour_salary FROM timesheet tsh LEFT JOIN tasks t ON tsh.task_id = t.task_id LEFT JOIN employees e ON tsh.employee_id = e.employee_id LEFT JOIN positions p ON e.position_id = p.position_id WHERE t.title = 'BILLING-970';
-// Сводная таблица в человеческом виде
-//   select tsh.timesheet_id, t.title, e.name, p.title, p.hour_salary, tsh.start_time, tsh.end_time FROM timesheet tsh JOIN tasks t ON tsh.task_id = t.task_id JOIN employees e ON tsh.employee_id = e.employee_id JOIN positions p ON e.position_id = p.position_id ORDER BY tsh.timesheet_id LIMIT 10;
-
-
-/* Полезные ссылки:
-Ссылка на настройку аннотаций: https://javarush.com/quests/lectures/questhibernate.level09.lecture01
-Как работать с ID: https://habr.com/ru/companies/haulmont/articles/653843/ В статье выше есть видео обзор
-Параметры LIMIT, OFFSET и сортировка задаются при помощи отдельных параметров https://javarush.com/quests/lectures/questhibernate.level10.lecture04
- */
+import java.util.logging.Level;
 
 public class Main {
     public static void main(String[] args) throws FileNotFoundException, ParseException {
+
+        org.jboss.logging.Logger logger = org.jboss.logging.Logger.getLogger("org.hibernate");
+        java.util.logging.Logger.getLogger("org.hibernate").setLevel(Level.OFF);
+
         if (args.length < 2) {
             System.err.println("Provide parameters: [action] [object] " + args.length);
             System.exit(1);

@@ -13,14 +13,8 @@ public class EmployeeDao {
         Transaction transaction = null;
         try {
             Session session = HibernateUtil.getSessionFactory().openSession();
-
             transaction = session.beginTransaction();
-            if (employee.getId() == null) {
-                session.save(employee);
-            } else {
-                session.update(employee);
-            }
-
+            session.save(employee);
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) {

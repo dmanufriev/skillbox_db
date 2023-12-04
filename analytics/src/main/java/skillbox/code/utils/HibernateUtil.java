@@ -17,7 +17,6 @@ public class HibernateUtil {
     public static SessionFactory getSessionFactory() {
         if (sessionFactory == null) {
             try {
-                // TODO Настройка hibernate https://javarush.com/quests/lectures/questhibernate.level09.lecture02
                 Configuration configuration = new Configuration();
 
                 Properties settings = new Properties();

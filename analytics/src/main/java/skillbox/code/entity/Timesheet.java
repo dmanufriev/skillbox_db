@@ -4,6 +4,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name="timesheet")
@@ -58,5 +59,14 @@ public class Timesheet implements Serializable {
 
     public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;
+    }
+
+    public boolean hasIntervalsIntersection(List<Timesheet> list) {
+        for (var t : list) {
+            if (startTime.isBefore(t.getEndTime()) && endTime.isAfter(t.getStartTime())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
